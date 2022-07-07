@@ -1,5 +1,5 @@
 from statsmodels.tsa.arima.model import ARIMA
-from statsmodels.tsa.stattools import adfuller
+import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -23,7 +23,13 @@ def make_stationary(df):
 
 def fit_model(data):
 
-    model = ARIMA(endog=data, order=(1,1,1))
+    # model = ARIMA(endog=data, order=(5,1,0))
+    model = sm.tsa.statespace.SARIMAX(data,
+                                order=(1, 0, 1),
+                                # seasonal_order=(1, 1, 1, 12),
+                                trend='c',
+                                enforce_stationarity=False,
+                                enforce_invertibility=False)
     model = model.fit()
 
     return model
@@ -45,18 +51,15 @@ if __name__ == '__main__':
     data = []
     for i in range(N):
         data.append(int(input()))
-    df = pd.DataFrame(data, columns=['WebTraffic'])
-    df.index = pd.DatetimeIndex(df.index)
-    df = make_stationary(df)
-    test_stationarity(df['WebTrafficShift1'])
+    data = np.array(data)
+
     plt.figure()
     plt.subplot(2, 1, 1)
-    plt.plot(df)
-    print(df['WebTrafficShift1'])
-    model = fit_model(df['WebTrafficShift1'])
-    # predictions = predict(N, model)
-    # plt.subplot(2, 1, 2)
-    # plt.plot(predictions)
+    plt.plot(data)
+    model = fit_model(data)
+    predictions = predict(data, model)
+    plt.subplot(2, 1, 2)
+    plt.plot(predictions)
     plt.show()
     
     
